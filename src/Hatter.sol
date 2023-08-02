@@ -49,7 +49,7 @@ contract Hatter {
   //////////////////////////////////////////////////////////////*/
 
   // Hats protocol contract address: v1.hatsprotocol.eth
-  IHats constant HATS = 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137;
+  IHats constant HATS = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
 
   // Aligned Delegate Registrar hat: the hat that this contract will wear
   uint256 immutable REGISTRAR_HAT;
@@ -60,16 +60,12 @@ contract Hatter {
   // Facilitator address
   address immutable FACILITATOR;
 
-  // other delegation contract data
+  // Delegation contract data to validate
   address immutable CHIEF;
   address immutable EXPIRATION;
   address immutable GOV;
   address immutable IOU;
   address immutable POLLING;
-
-  /*//////////////////////////////////////////////////////////////
-                            MUTABLE STATE
-  //////////////////////////////////////////////////////////////*/
 
   /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR
@@ -99,6 +95,7 @@ contract Hatter {
                           PUBLIC FUNCTIONS
   //////////////////////////////////////////////////////////////*/
 
+  // TODO consider using arrays to reduce likelihood of stack too deep errors
   function register(
     string calldata delegateName,
     string calldata ecosystemActorMessage,
@@ -149,6 +146,10 @@ contract Hatter {
     );
   }
 
+  /*//////////////////////////////////////////////////////////////
+                          INTERNAL FUNCTIONS
+  //////////////////////////////////////////////////////////////*/
+
   function _validateDelegationContractData(
     address delegationContract,
     address delegationContractDelegate,
@@ -189,6 +190,6 @@ contract Hatter {
     bytes32 messageHash = keccak256(abi.encodePacked(message));
 
     // check signature validity using recover for EOA and ERC1271 for contract
-    SignatureCheckerLib.isValidSignatureNowCalldata(signer, messageHash, signature);
+    return SignatureCheckerLib.isValidSignatureNowCalldata(signer, messageHash, signature);
   }
 }

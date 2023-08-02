@@ -19,17 +19,5 @@ contract HatterTest is Deploy, Test {
     // deploy via the script
     Deploy.prepare(false); // set to true to log deployment addresses
     Deploy.run();
-
-    Hatter.setNumber(0);
-  }
-
-  function testIncrement() public {
-    Hatter.increment();
-    assertEq(Hatter.number(), 1);
-  }
-
-  function testSetNumber(uint256 x) public {
-    Hatter.setNumber(x);
-    assertEq(Hatter.number(), x);
   }
 }
