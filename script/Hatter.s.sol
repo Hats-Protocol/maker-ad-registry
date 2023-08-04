@@ -10,18 +10,16 @@ contract Deploy is Script {
 
   // default values
   bool private verbose = true;
-  uint256 public REGISTRAR_HAT;
-  uint256 public FACILITATOR_HAT;
-  address public FACILITATOR;
-  address public CHIEF;
-  address public EXPIRATION;
-  address public GOV;
-  address public IOU;
-  address public POLLING;
+  uint256 internal REGISTRAR_HAT;
+  uint256 internal FACILITATOR_HAT;
+  address internal FACILITATOR;
 
   /// @notice Override default values, if desired
-  function prepare(bool _verbose) public {
+  function prepare(bool _verbose, uint256 registrarHat, uint256 facilitatorHat, address facilitator) public {
     verbose = _verbose;
+    REGISTRAR_HAT = registrarHat;
+    FACILITATOR_HAT = facilitatorHat;
+    FACILITATOR = facilitator;
   }
 
   function run() public {
@@ -32,12 +30,7 @@ contract Deploy is Script {
     hatter = new Hatter{ salt: SALT}(
       REGISTRAR_HAT,
       FACILITATOR_HAT,
-      FACILITATOR,
-      CHIEF,
-      EXPIRATION,
-      GOV,
-      IOU,
-      POLLING);
+      FACILITATOR);
 
     vm.stopBroadcast();
 
@@ -47,4 +40,4 @@ contract Deploy is Script {
   }
 }
 
-// forge script script/Deploy.s.sol -f ethereum --broadcast --verify
+// forge script script/Hatter.s.sol -f ethereum --broadcast --verify
