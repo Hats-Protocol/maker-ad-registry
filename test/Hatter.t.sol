@@ -334,4 +334,293 @@ contract CreateAndMintDelegateHat is InternalTest {
     harness.createAndMintDelegateHat(delegateName, delegate);
   }
 }
+
+contract Register is HatterTest {
+  function setUp() public virtual override {
+    super.setUp();
+
+    // generate valid inputs (each revert test will override 1 or more of these)
+    delegationContract1 = address(new DelegationContractMock(delegateEOA1));
+    delegationContractDelegate1 = delegateEOA1;
+    adRecognition1 = "August 1st, 2023, 12:00pm UTC; Following Demo AVC; AD: Test Delegate";
+    adRecognitionSignature1 = signMessage(adRecognition1, delegateEOA1Key);
+    delegationContract2 = address(new DelegationContractMock(delegateEOA2));
+    delegationContractDelegate2 = delegateEOA2;
+    adRecognition2 = "August 1st, 2023, 12:00pm UTC; Following Example AVC; AD: Test Delegate";
+    adRecognitionSignature2 = signMessage(adRecognition2, delegateEOA2Key);
+    ecosystemActorMessage = string.concat(adRecognition1, adRecognition2);
+    ecosystemActorSignature = signMessage(ecosystemActorMessage, delegateKey);
+  }
+
+  function test_happy() public {
+    // expect emit Registred
+    vm.expectEmit(true, true, true, true);
+
+    expectedDelegateHatId = HATS.getNextId(facilitatorHat);
+
+    emit Registered(
+      delegate,
+      delegateName,
+      expectedDelegateHatId,
+      ecosystemActorMessage,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2
+    );
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+
+    assertTrue(HATS.isWearerOfHat(delegate, expectedDelegateHatId));
+  }
+
+  function test_gas_happy() public {
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_delegateOverlapsContractDelegate1() public {
+    vm.expectRevert(InvalidDelegateAddresses.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegate, // should cause revert
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_delegateOverlapsContractDelegate2() public {
+    vm.expectRevert(InvalidDelegateAddresses.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegate, // should cause revert
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_sameContractDelegate() public {
+    vm.expectRevert(InvalidDelegateAddresses.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate1, // should cause revert
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_sameDelegationContract() public {
+    vm.expectRevert(InvalidDelegationContracts.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract1, // should cause revert
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_invalidEcosystemActorSignature() public {
+    ecosystemActorSignature = signMessage("invalid", delegateKey);
+
+    vm.expectRevert(InvalidEcosystemActorSignature.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature, // should cause revert
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_invalidADRecognitionSignature1() public {
+    // wrong message signed by the correct key
+    adRecognitionSignature1 = signMessage("invalid", delegateEOA1Key);
+
+    vm.expectRevert(InvalidADRecognitionSignature.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1, // should cause revert
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_invalidContractDelegate1() public {
+    delegationContract1 = address(new DelegationContractMock(address(999)));
+
+    vm.expectRevert(InvalidContractDelegate.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1, // should cause revert
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_invalidADRecognitionSignature2() public {
+    // wrong message signed by the correct key
+    adRecognitionSignature2 = signMessage("invalid", delegateEOA2Key);
+
+    vm.expectRevert(InvalidADRecognitionSignature.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2,
+      adRecognition2,
+      adRecognitionSignature2 // should cause revert
+    );
+  }
+
+  function test_revert_invalidContractDelegate2() public {
+    delegationContract2 = address(new DelegationContractMock(address(999)));
+
+    vm.expectRevert(InvalidContractDelegate.selector);
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2, // should cause revert
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
+
+  function test_revert_notRegistrarHatWearer() public {
+    vm.prank(maker);
+    HATS.transferHat(registrarHat, address(hatter), address(0));
+
+    expectedDelegateHatId = HATS.getNextId(facilitatorHat);
+    vm.expectRevert(abi.encodeWithSelector(NotAdmin.selector, address(hatter), expectedDelegateHatId));
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      delegationContractDelegate1,
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      delegationContractDelegate2, // should cause revert
+      adRecognition2,
+      adRecognitionSignature2
+    );
+  }
 }
