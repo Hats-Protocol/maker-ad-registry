@@ -2,13 +2,13 @@
 pragma solidity ^0.8.18;
 
 import { Test, console2 } from "forge-std/Test.sol";
-import { Hatter, DelegationContractLike } from "../src/Hatter.sol";
-import { Deploy } from "../script/Hatter.s.sol";
+import { HatterBase, DelegationContractLike } from "../src/HatterBase.sol";
+import { IHatter } from "../src/IHatter.sol";
+// import { Deploy } from "../script/Hatter.s.sol";
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 
-contract HatterTest is Deploy, Test {
-  // variables inhereted from Deploy script
-  // Hatter public hatter;
+contract HatterTest is Test {
+  IHatter public hatter;
 
   uint256 public fork;
   uint256 public BLOCK_NUMBER = 17_671_864;
@@ -51,6 +51,7 @@ contract HatterTest is Deploy, Test {
   error InvalidEcosystemActorSignature();
   error InvalidADRecognitionSignature();
   error InvalidDelegationContracts();
+  error InvalidDelegateAddresses();
   error InvalidContractDelegate();
   // Hats Protocol errors
   error NotAdmin(address user, uint256 hatId);
@@ -88,8 +89,12 @@ contract HatterTest is Deploy, Test {
     vm.stopPrank();
 
     // deploy hatter via the script; set first arg to true to log deployment addresses
-    Deploy.prepare(false, registrarHat, facilitatorHat, facilitator); //
-    Deploy.run();
+    // Deploy.prepare(false, registrarHat, facilitatorHat, facilitator); //
+    // Deploy.run();
+
+    // deploy pre-compiled contract
+    hatter =
+      IHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(registrarHat, facilitatorHat, facilitator)));
 
     // mint the registar hat to the hatter
     vm.prank(maker);
@@ -119,9 +124,9 @@ contract DeployTest is HatterTest {
   }
 }
 
-contract HatterHarness is Hatter {
+contract HatterHarness is HatterBase {
   constructor(uint256 registrarHat, uint256 facilitatorHat, address facilitator)
-    Hatter(registrarHat, facilitatorHat, facilitator)
+    HatterBase(registrarHat, facilitatorHat, facilitator)
   { }
 
   function isValidSignature(string calldata message, bytes calldata signature, address signer)
@@ -190,7 +195,7 @@ contract IsValidSignature is InternalTest {
     signerContract = new SignerMock();
   }
 
-  function test_eoaSignature() public {
+  function test_eoaSignature_happy() public {
     message = "hello world, I am an EOA";
     signature = signMessage(message, delegateKey);
 
@@ -204,7 +209,7 @@ contract IsValidSignature is InternalTest {
     assertFalse(harness.isValidSignature(message, signature, maker));
   }
 
-  function test_contractSignature() public {
+  function test_contractSignature_happy() public {
     message = "hello world, I am a smart contract";
     signature = signMessage(message, delegateKey);
 
@@ -289,15 +294,13 @@ contract ValidateDelegationContractData is InternalTest {
 contract CreateAndMintDelegateHat is InternalTest {
   string details;
   uint32 maxSupply;
-  uint32 supply;
   address eligibility;
   address toggle;
   string imageURI;
-  uint16 lastHatId;
   bool mutable_;
   bool active;
 
-  function expectedDetails(string memory _delegateName) public view returns (string memory) {
+  function expectedDetails(string memory _delegateName) public pure returns (string memory) {
     return string(abi.encodePacked("Aligned Delegate: ", _delegateName));
   }
 
@@ -308,7 +311,7 @@ contract CreateAndMintDelegateHat is InternalTest {
 
     delegateHat = harness.createAndMintDelegateHat(delegateName, delegate);
 
-    (details, maxSupply, supply, eligibility, toggle, imageURI, lastHatId, mutable_, active) = HATS.viewHat(delegateHat);
+    (details, maxSupply,, eligibility, toggle, imageURI,, mutable_, active) = HATS.viewHat(delegateHat);
 
     assertTrue(HATS.isAdminOfHat(address(harness), delegateHat));
     assertTrue(HATS.isAdminOfHat(facilitator, delegateHat));

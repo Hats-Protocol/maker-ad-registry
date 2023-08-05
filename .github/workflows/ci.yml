@@ -43,16 +43,13 @@ jobs:
         run: forge fmt --check
       
       - name: Check contract sizes
-        run: forge build --sizes --skip script
+        run: FOUNDRY_PROFILE=optimized forge build --sizes
 
       - name: Run tests
-        run: forge test -vvv
+        run: FOUNDRY_PROFILE=ci forge test -vvv
 
   coverage:
     name: "Test coverage"
-
-    env:
-      FOUNDRY_PROFILE: lite
 
     runs-on: ubuntu-latest
     steps:
@@ -63,8 +60,11 @@ jobs:
         with:
           version: nightly
 
+      - name: Build optimized contract
+        run: FOUNDRY_PROFILE=optimized forge build
+
       - name: Run coverage
-        run: forge coverage --report summary --report lcov
+        run: FOUNDRY_PROFILE=test forge coverage --report summary --report lcov
 
       # To ignore coverage for certain directories modify the paths in this step as needed. The
       # below default ignores coverage results for the test and script directories. Alternatively,

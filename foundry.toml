@@ -3,7 +3,7 @@ src = 'src'
 out = 'out'
 libs = ['lib']
 optimizer_runs = 1_000_000
-gas_reports = []
+gas_reports = ["*"]
 auto_detect_solc = false
 solc = "0.8.20"
 remappings = [
@@ -12,8 +12,24 @@ remappings = [
   "hats-protocol/=lib/hats-protocol/src/",
   "solady/=lib/solady/src/",
 ]
+# needed for tests to read bytecode precompiled by profile.optimized
+fs_permissions = [{ access = "read", path = "./optimized-out" }]
+
+# for pre-compiling ir-optimized bytecode that will be later deployed by tests
+[profile.optimized]
+via_ir = true
+out = 'optimized-out'
+script = 'src'
+bytecode_hash = 'ipfs'
+sizes = true
+# no need to compile tests with via-ir since they load optimized bytecode directly by default
+test = 'src'
+
+[profile.test]
+src = 'test'
 
 [profile.ci]
+src = 'test'
 fuzz = { runs = 5000 }
 invariant = { runs = 1000 }
 
