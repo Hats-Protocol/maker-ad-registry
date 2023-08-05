@@ -74,9 +74,6 @@ contract HatterBase {
   {
     // encode the message as bytes and hash it
     bytes32 messageHash = keccak256(abi.encodePacked(message));
-    // console2.log("_iVS — messageHash: ", messageHash);
-    // console2.log("_iVS — signature: ", signature);
-    // console2.log("_iVS — signer: ", signer);
 
     // check signature validity using recover for EOA and ERC1271 for contract
     return SignatureCheckerLib.isValidSignatureNowCalldata(signer, messageHash, signature);

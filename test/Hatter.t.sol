@@ -352,11 +352,11 @@ contract Register is HatterTest {
     ecosystemActorSignature = signMessage(ecosystemActorMessage, delegateKey);
   }
 
-  function test_happy() public {
+  function test_EOA_happy() public {
+    expectedDelegateHatId = HATS.getNextId(facilitatorHat);
+
     // expect emit Registred
     vm.expectEmit(true, true, true, true);
-
-    expectedDelegateHatId = HATS.getNextId(facilitatorHat);
 
     emit Registered(
       delegate,
@@ -390,7 +390,7 @@ contract Register is HatterTest {
     assertTrue(HATS.isWearerOfHat(delegate, expectedDelegateHatId));
   }
 
-  function test_gas_happy() public {
+  function test_gas_EOA_happy() public {
     vm.prank(delegate);
 
     delegateHat = hatter.register(
@@ -406,6 +406,61 @@ contract Register is HatterTest {
       adRecognition2,
       adRecognitionSignature2
     );
+  }
+
+  function test_contractSigner_happy() public {
+    // recreate delegation contracts, delegates, and signatures
+    uint256 signerKey1 = uint256(keccak256(abi.encodePacked("signer1")));
+    adRecognitionSignature1 = signMessage(adRecognition1, signerKey1);
+    SignerMock mock1 = new SignerMock();
+    mock1.sign(adRecognition1, adRecognitionSignature1);
+    delegationContract1 = address(new DelegationContractMock(address(mock1)));
+
+    assertEq(DelegationContractLike(delegationContract1).delegate(), address(mock1));
+
+    uint256 signerKey2 = uint256(keccak256(abi.encodePacked("signer2")));
+    adRecognitionSignature2 = signMessage(adRecognition2, signerKey2);
+    SignerMock mock2 = new SignerMock();
+    mock2.sign(adRecognition2, adRecognitionSignature2);
+    delegationContract2 = address(new DelegationContractMock(address(mock2)));
+
+    assertEq(DelegationContractLike(delegationContract2).delegate(), address(mock2));
+
+    expectedDelegateHatId = HATS.getNextId(facilitatorHat);
+
+    // expect emit Registred
+    vm.expectEmit(true, true, true, true);
+
+    emit Registered(
+      delegate,
+      delegateName,
+      expectedDelegateHatId,
+      ecosystemActorMessage,
+      delegationContract1,
+      address(mock1),
+      adRecognition1,
+      delegationContract2,
+      address(mock2),
+      adRecognition2
+    );
+
+    vm.prank(delegate);
+
+    delegateHat = hatter.register(
+      delegateName,
+      ecosystemActorMessage,
+      ecosystemActorSignature,
+      delegationContract1,
+      address(mock1),
+      adRecognition1,
+      adRecognitionSignature1,
+      delegationContract2,
+      address(mock2),
+      adRecognition2,
+      adRecognitionSignature2
+    );
+
+    assertTrue(HATS.isWearerOfHat(delegate, expectedDelegateHatId));
   }
 
   function test_revert_delegateOverlapsContractDelegate1() public {
@@ -618,7 +673,7 @@ contract Register is HatterTest {
       adRecognition1,
       adRecognitionSignature1,
       delegationContract2,
-      delegationContractDelegate2, // should cause revert
+      delegationContractDelegate2,
       adRecognition2,
       adRecognitionSignature2
     );
