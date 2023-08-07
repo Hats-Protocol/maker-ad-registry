@@ -7,6 +7,7 @@ import { IHatter } from "../src/IHatter.sol";
 // import { Deploy } from "../script/Hatter.s.sol";
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 contract HatterTest is Test {
   IHatter public hatter;
@@ -106,7 +107,9 @@ contract HatterTest is Test {
     uint8 v;
     bytes32 r;
     bytes32 s;
-    bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encodePacked(message)));
+    // bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
+    bytes32 messageHash =
+      keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", LibString.toString(bytes(message).length), message));
     (v, r, s) = vm.sign(privateKey, messageHash);
     signature = bytes.concat(r, s, bytes1(v));
   }
@@ -135,9 +138,7 @@ contract HatterHarness is HatterBase {
     view
     returns (bool)
   {
-    bool result = _isValidSignature(message, signature, signer);
-    // console2.log("_isValidSignature() result:", result);
-    return result;
+    return _isValidSignature(message, signature, signer);
   }
 
   function validateDelegationContractData(
@@ -164,7 +165,9 @@ contract SignerMock {
   mapping(bytes32 => bytes) public signed;
 
   function sign(string calldata message, bytes calldata signature) public {
-    bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encodePacked(message)));
+    // bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
+    bytes32 messageHash =
+      keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", LibString.toString(bytes(message).length), message));
     // console2.log("messageHash", messageHash);
     // console2.log("signature", signature);
     signed[messageHash] = signature;
@@ -231,30 +234,12 @@ contract IsValidSignature is InternalTest {
 
   function test_example() public {
     message = "this is a test, hopefully it works";
-    // message = "0xddf9b268c7375f5371a481c8b6bf7979cabf2e9aa288fafa9595d5e5b1c14c32";
+
     signature = abi.encode(
       hex"b426af7ac0323841496e628c164372180d251191c61cfe89258d01a580146672580fab8819d6af51766a03011518cd3eb571ca1e622faf3d88252b4e23e8956d1c"
     );
-
-    // 09ef8bd4abbe9c0d0033f5a7b2483a6959597d8acdd8d0defbaa1b6dafc3ef1e_5a2cbeb8e5ff1dbf9ea18b94496d52b868a80f700d93feedcfd8c3bb59a145_1c
-    // signature = abi.encode(
-    //   hex"a30166506918671c75e40dde3d2ee9e758efec216d8e720a14a67e5d26b0515d4a238ddc5dec7b8ea5d59de8acdc2b83f54cd2b6d4614ee5e2a4505cce882b661c"
-    // );
-
-    // console2.log("messageHash", vm.toString(keccak256(abi.encodePacked(message))));
-
+    
     assertTrue(harness.isValidSignature(message, signature, 0x26521eDE6e1796c6faEE57cBc68a178E78d8e23e));
-  }
-
-  function test_example2() public {
-    message = "this is the deployer wallet";
-    signature = signMessage(message, vm.envUint("PRIVATE_KEY"));
-    console2.log("signature", vm.toString(signature));
-
-    // signature from etherscan:
-    // 0xef70d965e7b1c683ee5b8c7675d90a34d1d0fd3bb32e952653c3add9c9a786584592b34fa6500230657a28013cee88507c8adf2cc40d4ce6a77bd1d9a25b165c1b
-
-    assertTrue(harness.isValidSignature(message, signature, 0x2A069e21395DC7f89F780F8cf5383a0Ff598B672));
   }
 
   function test_ecrecover() public {
@@ -262,7 +247,7 @@ contract IsValidSignature is InternalTest {
     signature = abi.encode(
       hex"09ef8bd4abbe9c0d0033f5a7b2483a6959597d8acdd8d0defbaa1b6dafc3ef1e5e5a2cbeb8e5ff1dbf9ea18b94496d52b868a80f700d93feedcfd8c3bb59a1451c"
     );
-    bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encodePacked(message)));
+    bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
     bytes32 r = bytes32(hex"09ef8bd4abbe9c0d0033f5a7b2483a6959597d8acdd8d0defbaa1b6dafc3ef1e");
     bytes32 s = bytes32(hex"5e5a2cbeb8e5ff1dbf9ea18b94496d52b868a80f700d93feedcfd8c3bb59a145");
     uint8 v = 0x1c;
