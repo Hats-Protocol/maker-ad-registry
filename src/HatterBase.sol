@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 // import { console2 } from "forge-std/Test.sol"; // remove before deploy
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 import { SignatureCheckerLib } from "solady/utils/SignatureCheckerLib.sol";
+import { ECDSA } from "solady/utils/ECDSA.sol";
 
 interface DelegationContractLike {
   function delegate() external view returns (address);
@@ -72,8 +73,8 @@ contract HatterBase {
     view
     returns (bool)
   {
-    // encode the message as bytes and hash it
-    bytes32 messageHash = keccak256(abi.encodePacked(message));
+    // encode the message as bytes, hash it, and convert it to an eth signed message hash
+    bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encodePacked(message)));
 
     // check signature validity using recover for EOA and ERC1271 for contract
     return SignatureCheckerLib.isValidSignatureNowCalldata(signer, messageHash, signature);
