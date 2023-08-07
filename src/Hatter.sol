@@ -9,9 +9,7 @@ contract Hatter is HatterBase {
                             CONSTRUCTOR
   //////////////////////////////////////////////////////////////*/
 
-  constructor(uint256 registrarHat, uint256 facilitatorHat, address facilitator)
-    HatterBase(registrarHat, facilitatorHat, facilitator)
-  { }
+  constructor(uint256 facilitatorHat, address facilitator) HatterBase(facilitatorHat, facilitator) { }
 
   /*//////////////////////////////////////////////////////////////
                           PUBLIC FUNCTIONS

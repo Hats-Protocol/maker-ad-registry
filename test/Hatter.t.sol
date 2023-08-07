@@ -7,7 +7,6 @@ import { IHatter } from "../src/IHatter.sol";
 // import { Deploy } from "../script/Hatter.s.sol";
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
-import { LibString } from "solady/utils/LibString.sol";
 
 contract HatterTest is Test {
   IHatter public hatter;
@@ -95,8 +94,7 @@ contract HatterTest is Test {
     // Deploy.run();
 
     // deploy pre-compiled contract
-    hatter =
-      IHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(registrarHat, facilitatorHat, facilitator)));
+    hatter = IHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(facilitatorHat, facilitator)));
 
     // mint the registar hat to the hatter
     vm.prank(maker);
@@ -107,9 +105,7 @@ contract HatterTest is Test {
     uint8 v;
     bytes32 r;
     bytes32 s;
-    // bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
-    bytes32 messageHash =
-      keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", LibString.toString(bytes(message).length), message));
+    bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
     (v, r, s) = vm.sign(privateKey, messageHash);
     signature = bytes.concat(r, s, bytes1(v));
   }
@@ -118,7 +114,6 @@ contract HatterTest is Test {
 contract DeployTest is HatterTest {
   function test_constants() public {
     assertEq(address(hatter.HATS()), address(HATS));
-    assertEq(hatter.REGISTRAR_HAT(), registrarHat);
     assertEq(hatter.FACILITATOR_HAT(), facilitatorHat);
     assertEq(hatter.FACILITATOR(), facilitator);
   }
@@ -129,9 +124,7 @@ contract DeployTest is HatterTest {
 }
 
 contract HatterHarness is HatterBase {
-  constructor(uint256 registrarHat, uint256 facilitatorHat, address facilitator)
-    HatterBase(registrarHat, facilitatorHat, facilitator)
-  { }
+  constructor(uint256 facilitatorHat, address facilitator) HatterBase(facilitatorHat, facilitator) { }
 
   function isValidSignature(string calldata message, bytes calldata signature, address signer)
     public
@@ -165,11 +158,8 @@ contract SignerMock {
   mapping(bytes32 => bytes) public signed;
 
   function sign(string calldata message, bytes calldata signature) public {
-    // bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
-    bytes32 messageHash =
-      keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", LibString.toString(bytes(message).length), message));
-    // console2.log("messageHash", messageHash);
-    // console2.log("signature", signature);
+    bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
+
     signed[messageHash] = signature;
   }
 
@@ -185,7 +175,7 @@ contract SignerMock {
 contract InternalTest is HatterTest {
   function setUp() public virtual override {
     super.setUp();
-    harness = new HatterHarness(registrarHat, facilitatorHat, facilitator);
+    harness = new HatterHarness( facilitatorHat, facilitator);
   }
 }
 
@@ -235,10 +225,9 @@ contract IsValidSignature is InternalTest {
   function test_example() public {
     message = "this is a test, hopefully it works";
 
-    signature = abi.encode(
-      hex"b426af7ac0323841496e628c164372180d251191c61cfe89258d01a580146672580fab8819d6af51766a03011518cd3eb571ca1e622faf3d88252b4e23e8956d1c"
-    );
-    
+    signature =
+      hex"b426af7ac0323841496e628c164372180d251191c61cfe89258d01a580146672580fab8819d6af51766a03011518cd3eb571ca1e622faf3d88252b4e23e8956d1c";
+
     assertTrue(harness.isValidSignature(message, signature, 0x26521eDE6e1796c6faEE57cBc68a178E78d8e23e));
   }
 

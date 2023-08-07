@@ -5,7 +5,6 @@ pragma solidity ^0.8.20;
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 import { SignatureCheckerLib } from "solady/utils/SignatureCheckerLib.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
-import { LibString } from "solady/utils/LibString.sol";
 
 interface DelegationContractLike {
   function delegate() external view returns (address);
@@ -46,9 +45,6 @@ contract HatterBase {
   // Hats protocol contract address: v1.hatsprotocol.eth
   IHats public constant HATS = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
 
-  // Aligned Delegate Registrar hat: the hat that this contract will wear
-  uint256 public immutable REGISTRAR_HAT;
-
   // AD Facilitator hat: the admin of the delegate hats this contract will create
   uint256 public immutable FACILITATOR_HAT;
 
@@ -59,8 +55,7 @@ contract HatterBase {
                             CONSTRUCTOR
   //////////////////////////////////////////////////////////////*/
 
-  constructor(uint256 registrarHat, uint256 facilitatorHat, address facilitator) {
-    REGISTRAR_HAT = registrarHat;
+  constructor(uint256 facilitatorHat, address facilitator) {
     FACILITATOR_HAT = facilitatorHat;
     FACILITATOR = facilitator;
   }
@@ -75,9 +70,7 @@ contract HatterBase {
     returns (bool)
   {
     // encode the message as bytes and convert it to an eth signed message hash
-    // bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
-    bytes32 messageHash =
-      keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", LibString.toString(bytes(message).length), message));
+    bytes32 messageHash = ECDSA.toEthSignedMessageHash(abi.encodePacked(message));
 
     // check signature validity using recover for EOA and ERC1271 for contract
     return SignatureCheckerLib.isValidSignatureNowCalldata(signer, messageHash, signature);
