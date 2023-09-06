@@ -10,7 +10,7 @@ interface DelegationContractLike {
   function delegate() external view returns (address);
 }
 
-contract HatterBase {
+contract ADRegistrarHatterBase {
   /*//////////////////////////////////////////////////////////////
                             CUSTOM ERRORS
   //////////////////////////////////////////////////////////////*/

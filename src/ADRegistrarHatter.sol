@@ -2,14 +2,14 @@
 pragma solidity ^0.8.20;
 
 // import { console2 } from "forge-std/Test.sol"; // remove before deploy
-import { HatterBase } from "./HatterBase.sol";
+import { ADRegistrarHatterBase } from "./ADRegistrarHatterBase.sol";
 
-contract Hatter is HatterBase {
+contract ADRegistrarHatter is ADRegistrarHatterBase {
   /*//////////////////////////////////////////////////////////////
                             CONSTRUCTOR
   //////////////////////////////////////////////////////////////*/
 
-  constructor(uint256 facilitatorHat, address facilitator) HatterBase(facilitatorHat, facilitator) { }
+  constructor(uint256 facilitatorHat, address facilitator) ADRegistrarHatterBase(facilitatorHat, facilitator) { }
 
   /*//////////////////////////////////////////////////////////////
                           PUBLIC FUNCTIONS

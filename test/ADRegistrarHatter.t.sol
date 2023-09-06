@@ -1,28 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.20;
 
 import { Test, console2 } from "forge-std/Test.sol";
-import { HatterBase, DelegationContractLike } from "../src/HatterBase.sol";
-import { IHatter } from "../src/IHatter.sol";
+import { ADRegistrarHatterBase, DelegationContractLike } from "../src/ADRegistrarHatterBase.sol";
+import { IADRegistrarHatter } from "../src/IADRegistrarHatter.sol";
 // import { Deploy } from "../script/Hatter.s.sol";
 import { IHats } from "hats-protocol/Interfaces/IHats.sol";
 import { ECDSA } from "solady/utils/ECDSA.sol";
 
 contract HatterTest is Test {
-  IHatter public hatter;
+  IADRegistrarHatter public hatter;
 
   uint256 public fork;
-  uint256 public BLOCK_NUMBER = 17_671_864;
+  uint256 public BLOCK_NUMBER = 18_074_710; // block after Maker hat tree was created
   IHats public HATS = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
 
-  string public tophatImage = "maker.png";
-  uint256 public tophat;
-  uint256 public registrarHat;
-  uint256 public facilitatorHat;
+  string public tophatImage = "ipfs://bafkreifameqf5owscjixlqckkqnejbkwyjjua3g3hplpinut52f7mssotu";
+  uint256 public tophat = 323_519_360_005_807_677_536_004_181_044_235_568_083_645_733_070_486_869_773_243_322_990_592; // ethereum
+    // 12
+  uint256 public registrarHat =
+    323_519_771_400_778_313_043_674_762_078_038_575_690_894_978_002_760_344_501_601_263_681_536; // ethereum 12.1.3
+  uint256 public facilitatorHat =
+    323_519_771_400_778_408_824_646_066_196_092_223_087_584_174_897_084_320_672_796_400_156_672; // ethereum 12.1.3.1
   uint256 public delegateHat;
 
-  address public maker = makeAddr("maker");
-  address public facilitator = makeAddr("facilitator");
+  address public maker = 0xa648640060d5d00914c05C10bDe3e0CBa5c88CD2; // signer.0xretro.eth
+  address public facilitator = 0xa648640060d5d00914c05C10bDe3e0CBa5c88CD2; // signer.0xretro.eth
   address public delegate;
   uint256 public delegateKey;
 
@@ -80,21 +83,21 @@ contract HatterTest is Test {
     (delegateEOA2, delegateEOA2Key) = makeAddrAndKey("delegateEOA2");
 
     // create a new maker hats tree, with a tophat, registrar hat, and facilitator hat
-    vm.startPrank(maker);
-    tophat = HATS.mintTopHat(maker, "makerDAO", tophatImage);
-    registrarHat = HATS.createHat(tophat, "registrar hat", 1, maker, maker, true, "");
-    facilitatorHat = HATS.createHat(registrarHat, "facilitator hat", 1, maker, maker, true, "");
+    // vm.startPrank(maker);
+    // tophat = HATS.mintTopHat(maker, "makerDAO", tophatImage);
+    // registrarHat = HATS.createHat(tophat, "registrar hat", 1, maker, maker, true, "");
+    // facilitatorHat = HATS.createHat(registrarHat, "facilitator hat", 1, maker, maker, true, "");
 
     // mint the facilitator hat to the facilitator
+    vm.prank(facilitator);
     HATS.mintHat(facilitatorHat, facilitator);
-    vm.stopPrank();
 
     // deploy hatter via the script; set first arg to true to log deployment addresses
-    // Deploy.prepare(false, registrarHat, facilitatorHat, facilitator); //
+    // Deploy.prepare(false, facilitatorHat, facilitator); //
     // Deploy.run();
 
     // deploy pre-compiled contract
-    hatter = IHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(facilitatorHat, facilitator)));
+    hatter = IADRegistrarHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(facilitatorHat, facilitator)));
 
     // mint the registar hat to the hatter
     vm.prank(maker);
@@ -123,8 +126,8 @@ contract DeployTest is HatterTest {
   }
 }
 
-contract HatterHarness is HatterBase {
-  constructor(uint256 facilitatorHat, address facilitator) HatterBase(facilitatorHat, facilitator) { }
+contract HatterHarness is ADRegistrarHatterBase {
+  constructor(uint256 facilitatorHat, address facilitator) ADRegistrarHatterBase(facilitatorHat, facilitator) { }
 
   function isValidSignature(string calldata message, bytes calldata signature, address signer)
     public

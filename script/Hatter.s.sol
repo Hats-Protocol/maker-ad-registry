@@ -11,7 +11,7 @@ contract Deploy is Script {
   // default values
   bool private verbose = true;
   uint256 internal FACILITATOR_HAT =
-    1_779_356_891_414_358_658_484_920_215_249_427_053_220_885_443_987_746_547_592_268_148_113_408; // goerli 66.1.1
+    323_519_771_400_778_408_824_646_066_196_092_223_087_584_174_897_084_320_672_796_400_156_672; // goerli 66.1.1
   address internal FACILITATOR = 0xA7a5A2745f10D5C23d75a6fd228A408cEDe1CAE5; // spengrah.eth
 
   /// @notice Override default values, if desired
@@ -31,7 +31,7 @@ contract Deploy is Script {
     vm.stopBroadcast();
 
     if (verbose) {
-      console2.log("Hatter:", address(hatter));
+      console2.log("Hatter:", hatter);
     }
   }
 }
@@ -41,6 +41,6 @@ contract Deploy is Script {
 /* 
  forge verify-contract --chain-id 5 --num-of-optimizations 1000000 --watch --constructor-args $(cast abi-encode \
  "constructor(uint256,address)" "1779356891414358658484920215249427053220885443987746547592268148113408" \
- "0xA7a5A2745f10D5C23d75a6fd228A408cEDe1CAE5") --compiler-version v0.8.20 0xF8e5fE6E1b355E883dC6Ad5362b823e1e350B511 \
- src/Hatter.sol:Hattter --etherscan-api-key $ETHERSCAN_KEY --show-standard-json-input > etherscan.json
+ "0xA7a5A2745f10D5C23d75a6fd228A408cEDe1CAE5") --compiler-version v0.8.20 0x2df5Bf24090CD263d41535cC307F08d2853F1467 \
+ src/ADRegistrarHatter.sol:ADRegistrarHatter --etherscan-api-key $ETHERSCAN_KEY --show-standard-json-input > etherscan.json
 */
