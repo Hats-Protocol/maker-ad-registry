@@ -2,7 +2,7 @@
 
 Automated registration and verification of MakerDAO governance Aligned Delegates (ADs).
 
-## Overview and Usage
+## Overview
 
 This contract streamlines the Aligned Delegate registration process by automating verification of several of the requirements from [MIP 6.2.1](https://mips.makerdao.com/mips/details/MIP113#6-2-1):
 
@@ -26,11 +26,11 @@ An event is also emitted as a full record of the submission.
 > - The Ecosystem Actor Message content is valid (see [MIP 6.2.1.4](https://mips.makerdao.com/mips/details/MIP113#6-2-1-4))
 > - The AD Recognition Submission messages for each of the registrant's Delegation Contracts are valid (see [MIP 6.2.1.2](https://mips.makerdao.com/mips/details/MIP113#6-2-1-2))
 
-### How to register as an Aligned Delegate
+## How to register as an Aligned Delegate
 
-Prospective Aligned Delegates should following the steps below to register:
+Prospective Aligned Delegates should follow the steps below to register:
 
-#### Setup and Pre-requisites
+### Setup and Pre-requisites
 
 These steps are the same as those registrants take today.
 
@@ -39,7 +39,9 @@ B. Draft a valid Ecosystem Actor Message
 C. Sign the message from (B) with your Ecosystem Actor address, using an [EIP-191](https://eips.ethereum.org/EIPS/eip-191)-compatible signing method such as [Etherscan verified signatures](https://etherscan.io/verifiedSignatures) or [MyCrypto](https://app.mycrypto.com/sign-message)
 D. Draft two valid AD Recognition Submission messages, one for each of the Delegation Contracts from (A)
 
-#### Registration
+### Registration
+
+These steps are part of the new registration process enabled by this contract. In particular, step (E) automates the bulk of the verification that was previously necessary.
 
 E. Call the `register()` function — eg via Etherscan — on this contract with the following parameters:
 
