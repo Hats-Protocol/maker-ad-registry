@@ -35,8 +35,11 @@ Prospective Aligned Delegates should follow the steps below to register:
 These steps are the same as those registrants take today.
 
 A. Deploy two Delegation Contracts, each controlled by separate "delegate" addresses ("Delegation Contract 1" and "Delegation Contract 2")
+
 B. Draft a valid Ecosystem Actor Message
+
 C. Sign the message from (B) with your Ecosystem Actor address, using an [EIP-191](https://eips.ethereum.org/EIPS/eip-191)-compatible signing method such as [Etherscan verified signatures](https://etherscan.io/verifiedSignatures) or [MyCrypto](https://app.mycrypto.com/sign-message)
+
 D. Draft two valid AD Recognition Submission messages, one for each of the Delegation Contracts from (A)
 
 ### Registration

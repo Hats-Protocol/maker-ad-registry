@@ -97,7 +97,8 @@ contract HatterTest is Test {
     // Deploy.run();
 
     // deploy pre-compiled contract
-    hatter = IADRegistrarHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(facilitatorHat, facilitator)));
+    hatter =
+      IADRegistrarHatter(deployCode("optimized-out/Hatter.sol/Hatter.json", abi.encode(facilitatorHat, facilitator)));
 
     // mint the registar hat to the hatter
     vm.prank(maker);

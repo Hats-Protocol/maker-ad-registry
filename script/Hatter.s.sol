@@ -42,5 +42,5 @@ contract Deploy is Script {
  forge verify-contract --chain-id 5 --num-of-optimizations 1000000 --watch --constructor-args $(cast abi-encode \
  "constructor(uint256,address)" "1779356891414358658484920215249427053220885443987746547592268148113408" \
  "0xA7a5A2745f10D5C23d75a6fd228A408cEDe1CAE5") --compiler-version v0.8.20 0x2df5Bf24090CD263d41535cC307F08d2853F1467 \
- src/ADRegistrarHatter.sol:ADRegistrarHatter --etherscan-api-key $ETHERSCAN_KEY --show-standard-json-input > etherscan.json
-*/
+src/ADRegistrarHatter.sol:ADRegistrarHatter --etherscan-api-key $ETHERSCAN_KEY --show-standard-json-input >
+etherscan.json*/
