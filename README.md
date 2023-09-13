@@ -32,7 +32,7 @@ Prospective Aligned Delegates should follow the steps below to register:
 
 ### Setup and Pre-requisites
 
-These steps are the same as those registrants take today.
+These steps are no different from what prospective delegates need to do today.
 
 A. Deploy two Delegation Contracts, each controlled by separate "delegate" addresses ("Delegation Contract 1" and "Delegation Contract 2")
 
